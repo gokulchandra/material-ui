@@ -72,7 +72,11 @@ class EnhancedTableHead extends React.Component {
                 numeric={column.numeric}
                 padding={column.disablePadding ? 'none' : 'default'}
               >
-                <Tooltip title="Sort" placement="bottom-end" enterDelay={300}>
+                <Tooltip
+                  title="Sort"
+                  placement={column.numeric ? 'bottom-end' : 'bottom-start'}
+                  enterDelay={300}
+                >
                   <TableSortLabel
                     active={orderBy === column.id}
                     direction={order}
@@ -162,6 +166,9 @@ const styles = theme => ({
   root: {
     width: '100%',
     marginTop: theme.spacing.unit * 3,
+  },
+  table: {
+    minWidth: 800,
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -257,14 +264,14 @@ class EnhancedTable extends React.Component {
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
   render() {
-    const classes = this.props.classes;
+    const { classes } = this.props;
     const { data, order, orderBy, selected, rowsPerPage, page } = this.state;
 
     return (
       <Paper className={classes.root}>
         <EnhancedTableToolbar numSelected={selected.length} />
         <div className={classes.tableWrapper}>
-          <Table>
+          <Table className={classes.table}>
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
@@ -300,13 +307,15 @@ class EnhancedTable extends React.Component {
               })}
             </TableBody>
             <TableFooter>
-              <TablePagination
-                count={data.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={this.handleChangePage}
-                onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              />
+              <TableRow>
+                <TablePagination
+                  count={data.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onChangePage={this.handleChangePage}
+                  onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                />
+              </TableRow>
             </TableFooter>
           </Table>
         </div>

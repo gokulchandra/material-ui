@@ -28,6 +28,9 @@ export const styles = (theme: Object) => ({
     textDecoration: 'none',
     // So we take precedent over the style of a native <a /> element.
     color: 'inherit',
+    '&::-moz-focus-inner': {
+      borderStyle: 'none', // Remove Firefox dotted outline.
+    },
   },
   disabled: {
     pointerEvents: 'none', // Disable link interactions
@@ -124,6 +127,10 @@ export type Props = {
   /**
    * @ignore
    */
+  onTouchMove?: Function,
+  /**
+   * @ignore
+   */
   onTouchStart?: Function,
   /**
    * @ignore
@@ -185,7 +192,7 @@ class ButtonBase extends React.Component<ProvidedProps & Props, State> {
   keyDown = false; // Used to help track keyboard activation keyDown
   button = null;
   keyboardFocusTimeout = null;
-  keyboardFocusCheckTime = 40;
+  keyboardFocusCheckTime = 30;
   keyboardFocusMaxCheckTimes = 5;
 
   handleKeyDown = event => {
@@ -250,7 +257,11 @@ class ButtonBase extends React.Component<ProvidedProps & Props, State> {
 
   handleTouchEnd = createRippleHandler(this, 'TouchEnd', 'stop');
 
+  handleTouchMove = createRippleHandler(this, 'TouchEnd', 'stop');
+
   handleBlur = createRippleHandler(this, 'Blur', 'stop', () => {
+    clearTimeout(this.keyboardFocusTimeout);
+    focusKeyPressed(false);
     this.setState({ keyboardFocused: false });
   });
 
@@ -259,12 +270,14 @@ class ButtonBase extends React.Component<ProvidedProps & Props, State> {
       return;
     }
 
-    if (this.button) {
-      event.persist();
-
-      const keyboardFocusCallback = this.onKeyboardFocusHandler.bind(this, event);
-      detectKeyboardFocus(this, this.button, keyboardFocusCallback);
+    // Fix for https://github.com/facebook/react/issues/7769
+    if (!this.button) {
+      this.button = event.currentTarget;
     }
+
+    event.persist();
+    const keyboardFocusCallback = this.onKeyboardFocusHandler.bind(this, event);
+    detectKeyboardFocus(this, this.button, keyboardFocusCallback);
 
     if (this.props.onFocus) {
       this.props.onFocus(event);
@@ -315,6 +328,7 @@ class ButtonBase extends React.Component<ProvidedProps & Props, State> {
       onMouseLeave,
       onMouseUp,
       onTouchEnd,
+      onTouchMove,
       onTouchStart,
       rootRef,
       tabIndex,
@@ -362,12 +376,13 @@ class ButtonBase extends React.Component<ProvidedProps & Props, State> {
         onMouseLeave={this.handleMouseLeave}
         onMouseUp={this.handleMouseUp}
         onTouchEnd={this.handleTouchEnd}
+        onTouchMove={this.handleTouchMove}
         onTouchStart={this.handleTouchStart}
-        ref={rootRef}
         tabIndex={disabled ? -1 : tabIndex}
         className={className}
         {...buttonProps}
         {...other}
+        ref={rootRef}
       >
         {children}
         {this.renderRipple()}

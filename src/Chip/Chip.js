@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import type { Element } from 'react';
+import type { Element, Node } from 'react';
 import classNames from 'classnames';
 import keycode from 'keycode';
 import withStyles from '../styles/withStyles';
@@ -108,7 +108,7 @@ export type Props = {
   /**
    * The content of the label.
    */
-  label?: string | Element<any>,
+  label?: Node,
   /**
    * @ignore
    */
@@ -222,10 +222,10 @@ class Chip extends React.Component<ProvidedProps & Props> {
         tabIndex={tabIndex}
         onClick={onClick}
         onKeyDown={this.handleKeyDown}
+        {...other}
         ref={node => {
           this.chipRef = node;
         }}
-        {...other}
       >
         {avatar}
         <span className={classes.label}>{label}</span>

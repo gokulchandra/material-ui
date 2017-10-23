@@ -3,14 +3,13 @@
 import React from 'react';
 import type { Node } from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
 import warning from 'warning';
 import contains from 'dom-helpers/query/contains';
 import debounce from 'lodash/debounce';
 import EventListener from 'react-event-listener';
 import withStyles from '../styles/withStyles';
 import Modal from '../internal/Modal';
-import type { TransitionCallback } from '../internal/Transition';
+import type { TransitionCallback, TransitionClasses } from '../internal/transition';
 import Grow from '../transitions/Grow';
 import Paper from '../Paper';
 
@@ -108,29 +107,9 @@ export type Props = {
    */
   classes?: Object,
   /**
-   * @ignore
-   */
-  className?: string,
-  /**
    * The elevation of the popover.
    */
   elevation?: number,
-  /**
-   * The CSS class name applied while the component is entering
-   */
-  enteredClassName?: string,
-  /**
-   * The CSS class name applied while the component is entering
-   */
-  enteringClassName?: string,
-  /**
-   * The CSS class name applied when the component is exited
-   */
-  exitedClassName?: string,
-  /**
-   * The CSS class name applied while the component is exiting
-   */
-  exitingClassName?: string,
   /**
    * @ignore
    */
@@ -168,7 +147,7 @@ export type Props = {
   /**
    * If `true`, the popover is visible.
    */
-  open?: boolean,
+  open: boolean,
   /**
    * Properties applied to the `Paper` element.
    */
@@ -187,6 +166,11 @@ export type Props = {
    */
   transformOrigin?: Origin,
   /**
+   * The animation classNames applied to the component as it enters or exits.
+   * This property is a direct binding to [`CSSTransition.classNames`](https://reactcommunity.org/react-transition-group/#CSSTransition-prop-classNames).
+   */
+  transitionClasses?: TransitionClasses,
+  /**
    * Set to 'auto' to automatically calculate transition time based on height
    */
   transitionDuration?: number | 'auto',
@@ -198,7 +182,6 @@ class Popover extends React.Component<ProvidedProps & Props> {
       vertical: 'top',
       horizontal: 'left',
     },
-    open: false,
     transformOrigin: {
       vertical: 'top',
       horizontal: 'left',
@@ -325,7 +308,7 @@ class Popover extends React.Component<ProvidedProps & Props> {
       warning(
         this.props.anchorOrigin.vertical === 'top',
         [
-          'Material-UI: you can change the `anchorOrigin.vertical` value when also ',
+          'Material-UI: you can not change the `anchorOrigin.vertical` value when also ',
           'providing the `getContentAnchorEl` property. Pick one.',
         ].join(),
       );
@@ -350,12 +333,7 @@ class Popover extends React.Component<ProvidedProps & Props> {
       anchorOrigin,
       children,
       classes,
-      className,
       elevation,
-      enteredClassName,
-      enteringClassName,
-      exitedClassName,
-      exitingClassName,
       getContentAnchorEl,
       onEnter,
       onEntering,
@@ -367,18 +345,16 @@ class Popover extends React.Component<ProvidedProps & Props> {
       PaperProps,
       role,
       transformOrigin,
+      transitionClasses,
       transitionDuration,
       ...other
     } = this.props;
 
     return (
-      <Modal show={open} backdropInvisible {...other}>
+      <Modal show={open} BackdropInvisible {...other}>
         <Grow
+          appear
           in={open}
-          enteredClassName={enteredClassName}
-          enteringClassName={enteringClassName}
-          exitedClassName={exitedClassName}
-          exitingClassName={exitingClassName}
           onEnter={this.handleEnter}
           onEntering={onEntering}
           onEntered={onEntered}
@@ -386,7 +362,7 @@ class Popover extends React.Component<ProvidedProps & Props> {
           onExiting={onExiting}
           onExited={onExited}
           role={role}
-          transitionAppear
+          transitionClasses={transitionClasses}
           transitionDuration={transitionDuration}
           rootRef={node => {
             this.transitionEl = node;
@@ -394,7 +370,7 @@ class Popover extends React.Component<ProvidedProps & Props> {
         >
           <Paper
             data-mui-test="Popover"
-            className={classNames(classes.paper, className)}
+            className={classes.paper}
             elevation={elevation}
             {...PaperProps}
           >

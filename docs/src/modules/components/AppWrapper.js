@@ -34,28 +34,39 @@ class AppWrapper extends React.Component<any, any> {
       jssStyles.parentNode.removeChild(jssStyles);
     }
 
-    if (this.props.dark) {
-      setPrismTheme(darkTheme);
-    } else {
+    if (this.props.uiTheme.paletteType === 'light') {
       setPrismTheme(lightTheme);
+    } else {
+      setPrismTheme(darkTheme);
+    }
+
+    if (document.body) {
+      document.body.dir = this.props.uiTheme.direction;
     }
 
     // Wait for the title to be updated.
     this.googleTimer = setTimeout(() => {
       window.gtag('config', config.google.id, {
-        page_path: location.pathname,
+        page_path: window.location.pathname,
       });
     });
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dark !== this.props.dark) {
-      this.styleContext.theme = getTheme(nextProps.dark);
+    if (
+      nextProps.uiTheme.paletteType !== this.props.uiTheme.paletteType ||
+      nextProps.uiTheme.direction !== this.props.uiTheme.direction
+    ) {
+      this.styleContext.theme = getTheme(nextProps.uiTheme);
 
-      if (nextProps.dark) {
-        setPrismTheme(darkTheme);
-      } else {
+      if (nextProps.uiTheme.paletteType === 'light') {
         setPrismTheme(lightTheme);
+      } else {
+        setPrismTheme(darkTheme);
+      }
+
+      if (document.body) {
+        document.body.dir = nextProps.uiTheme.direction;
       }
     }
   }
@@ -85,8 +96,10 @@ class AppWrapper extends React.Component<any, any> {
 
 AppWrapper.propTypes = {
   children: PropTypes.node.isRequired,
-  dark: PropTypes.bool.isRequired,
   sheetsRegistry: PropTypes.object,
+  uiTheme: PropTypes.object.isRequired,
 };
 
-export default connect(state => state.theme)(AppWrapper);
+export default connect(state => ({
+  uiTheme: state.theme,
+}))(AppWrapper);
